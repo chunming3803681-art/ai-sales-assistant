@@ -550,19 +550,19 @@ def handle_request(conn):
 
 def main():
     import threading
-    PORT = 5002
+    HOST = os.environ.get("HOST", "0.0.0.0")
+    PORT = int(os.environ.get("PORT", 5002))
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    while True:
-        try:
-            s.bind(("127.0.0.1", PORT))
-            break
-        except OSError:
-            PORT += 1
+    try:
+        s.bind((HOST, PORT))
+    except OSError:
+        HOST = "0.0.0.0"
+        s.bind((HOST, PORT))
     s.listen(10)
     print("=" * 50)
     print(f"  AI 销售助手 启动成功！（多线程）")
-    print(f"  👉 请在浏览器打开: http://127.0.0.1:{PORT}")
+    print(f"  👉 监听: http://{HOST}:{PORT}")
     print("=" * 50)
     try:
         while True:
