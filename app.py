@@ -551,7 +551,7 @@ def handle_request(conn):
 def main():
     import threading
     HOST = os.environ.get("HOST", "0.0.0.0")
-    PORT = int(os.environ.get("PORT", 5002))
+    PORT = int(os.environ.get("PORT", 8080))
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     try:
