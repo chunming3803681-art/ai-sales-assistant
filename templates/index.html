@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 销售助手</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🏠 AI 销售助手</h1>
+        <p class="subtitle">粘贴客户聊天记录，AI 自动分析</p>
+
+        <!-- 输入区域 -->
+        <textarea 
+            id="chatInput" 
+            placeholder="请粘贴客户聊天记录...&#10;&#10;例如：&#10;客户想买 PJ Condo，预算 RM600k，已经两天没回复。"
+            rows="8"
+        ></textarea>
+
+        <!-- 分析按钮 -->
+        <button id="analyzeBtn" onclick="analyzeChat()">
+            🔍 分析客户
+        </button>
+
+        <!-- 加载动画（默认隐藏） -->
+        <div id="loading" class="loading" style="display: none;">
+            正在分析中...
+        </div>
+
+        <!-- 结果显示区域 -->
+        <div id="result" class="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        async function analyzeChat() {
+            const chatText = document.getElementById("chatInput").value.trim();
+            
+            if (!chatText) {
+                alert("请先粘贴客户聊天记录！");
+                return;
+            }
+
+            // 显示加载动画
+            document.getElementById("loading").style.display = "block";
+            document.getElementById("result").style.display = "none";
+            document.getElementById("analyzeBtn").disabled = true;
+
+            try {
+                const response = await fetch("/analyze", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ chat: chatText }),
+                });
+
+                const data = await response.json();
+
+                // 显示结果
+                const resultDiv = document.getElementById("result");
+                resultDiv.innerHTML = data.html || "<p style='color:red;'>分析失败</p>";
+                resultDiv.style.display = "block";
+            } catch (error) {
+                alert("请求失败: " + error.message);
+            } finally {
+                // 隐藏加载动画，恢复按钮
+                document.getElementById("loading").style.display = "none";
+                document.getElementById("analyzeBtn").disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
