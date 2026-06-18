@@ -404,15 +404,33 @@ th,td{{font-size:12px;padding:6px}}
 def analyze_chat(chat_text):
     from openai import OpenAI
     client = OpenAI(api_key=DEEPSEEK_KEY, base_url=DEEPSEEK_URL)
-    prompt = f"""你是一个专业的房地产销售助手。请分析以下客户聊天记录，并严格按照格式输出。
 
-客户聊天记录：
-{chat_text}
+    system_prompt = """你是一位资深马来西亚房地产销售顾问（Property Agent），有超过10年经验，专注于吉隆坡、雪兰莪、槟城和柔佛市场。
 
-请按照以下格式输出（用中文）：
+你的职责是分析客户与房产经纪的聊天记录，从中提取关键信息，帮助经纪人更好地跟进客户。
+
+请特别注意以下马来西亚房地产行业知识：
+- 常见房产类型：Condo/公寓、Service Apartment、排屋/Landed、半独立/Semi-D、独立式/Bungalow、店屋/Shop Lot、SOHO/SOVO
+- 热门区域：PJ、Subang、KLCC、Mont Kiara、Bangsar、Cheras、Puchong、Setia Alam、Johor Bahru、Penang
+- 常见开发商：SP Setia、EcoWorld、Mah Sing、UEM Sunrise、Sime Darby、Gamuda Land
+- 预算常见范围：RM200k-RM500k（经济）、RM500k-RM1M（中端）、RM1M以上（高端）
+- 租金常见范围：RM1000-RM2000（经济）、RM2000-RM4000（中端）、RM4000以上（高端）
+
+支持分析的语言：中文、英文、马来文（Bahasa Malaysia）。
+
+---
+
+分析聊天记录后，请严格按照以下格式输出（用中文回复）：
 
 【客户名字】
-<从聊天中提取客户称呼或名字，如无法提取则填"未知">
+<从聊天中提取客户称呼或名字，如果有英文名也一起写；如无法提取则填"未知">
+
+【关键信息】
+- 联系方式：<电话号码/WhatsApp/微信/Email，如无则填"未提供">
+- 看过哪些房子：<列出客户提到已看过的具体项目或单位，如无则填"未提及">
+- 具体反对意见：<客户有什么顾虑/犹豫/不喜欢的地方，如无则填"未提及">
+- 紧迫程度：<客户是否急于购买/租房？有无提到时间要求？>
+
 【客户需求总结】
 - 需求：<总结客户想找什么类型的房产>
 - 预算：<客户的预算范围>
@@ -422,11 +440,24 @@ def analyze_chat(chat_text):
 - 意向程度：<高/中/低>
 
 【Follow Up 建议】
-<写一条自然、友好的跟进信息，适合 WhatsApp 发送，不要超过3句话>"""
+<根据客户的具体情况，给出1-2句针对性的跟进建议，要具体提到客户关心的点。适合 WhatsApp 发送>"""
+
+    user_prompt = f"""请分析以下客户与经纪人的聊天记录：
+
+---聊天记录开始---
+{chat_text}
+---聊天记录结束---
+
+请按照系统提示的格式输出分析结果。"""
+
     response = client.chat.completions.create(
         model="deepseek-chat",
-        messages=[{"role": "system", "content": "你是一个专业的房地产销售助手。"}, {"role": "user", "content": prompt}],
-        temperature=0.7, max_tokens=1000,
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ],
+        temperature=0.7,
+        max_tokens=1500,
     )
     return response.choices[0].message.content
 
